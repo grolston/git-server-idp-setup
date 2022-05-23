@@ -1,0 +1,32 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "GitLab-CI OIDC Provider standalone setup"
+
+Parameters:
+
+  ProviderName:
+    Type: String
+    Description: "Give the IDP a Descriptive Name"
+    Default: "GitLab-OIDC-Provider"
+
+Resources:
+
+  IdpGitLabOidc:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url: https://gitlab.com
+      ClientIdList:
+        - sts.amazonaws.com
+      ThumbprintList:
+        - B3DD7606D2B5A8B4A13771DBECC9EE1CECAFA38A
+      Tags:
+      - Key: Name
+        Value: !Ref ProviderName
+
+Outputs:
+
+  IdpGitHubOidc:
+    Description: "ARN of GitLab OIDC Provider"
+    Value: !GetAtt IdpGitLabOidc.Arn
+    Export:
+      Name: !Sub ${ProviderName}-Arn

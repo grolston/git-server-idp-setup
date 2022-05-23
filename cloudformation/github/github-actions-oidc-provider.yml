@@ -1,6 +1,6 @@
 ---
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "Github Actions - OIDC Identity Provider"
+Description: "Github Actions OIDC Identity Provider standalone setup"
 
 Parameters:
 
