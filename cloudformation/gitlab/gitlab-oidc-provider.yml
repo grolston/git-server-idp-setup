@@ -17,8 +17,9 @@ Resources:
       Url: https://gitlab.com
       ClientIdList:
         - sts.amazonaws.com
+        - https://gitlab.com
       ThumbprintList:
-        - B3DD7606D2B5A8B4A13771DBECC9EE1CECAFA38A
+        - b3dd7606d2b5a8b4a13771dbecc9ee1cecafa38a
       Tags:
       - Key: Name
         Value: !Ref ProviderName
