@@ -1,3 +1,9 @@
+image: 
+  name: amazon/aws-cli:latest
+  entrypoint: 
+    - '/usr/bin/env'
+
+
 assume role:
   script:
     - >
