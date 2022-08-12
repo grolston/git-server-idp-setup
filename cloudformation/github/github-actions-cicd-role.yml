@@ -27,7 +27,7 @@ Parameters:
   UseExistingProvider:
     Type: String
     Description: "Only one GitHub Provider can exists. Choose yes if one is already present in account"
-    Default: "yes"
+    Default: "no"
     AllowedValues:
       - "yes"
       - "no"
