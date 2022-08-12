@@ -14,6 +14,11 @@ Parameters:
     Description: The repo(s) these roles will have access to. (Use * for all Org Repos or wildcard)
     Default: "*"
 
+  BranchName:
+    Type: String
+    Description: Name of the git branch to to trust. (Use * for all branches)
+    Default: "*"
+    
   RoleName:
     Type: String
     Description: Name the Role
@@ -40,6 +45,7 @@ Resources:
       Url: https://token.actions.githubusercontent.com
       ClientIdList:
         - sts.amazonaws.com
+        - !Sub https://github.com/${GitHubOrganization}/${RepoName}
       ThumbprintList:
         - 6938fd4d98bab03faadb97b34396831e3780aea1
       Tags:
@@ -63,7 +69,7 @@ Resources:
               StringEquals:
                 token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
               StringLike:
-                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubOrganization}/${RepositoryName}:*
+                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubOrganization}/${RepositoryName}:ref:refs/heads/${pBranchName}
       ManagedPolicyArns:
         - !Sub arn:${AWS::Partition}:iam::aws:policy/ReadOnlyAccess
         - !Sub arn:${AWS::Partition}:iam::aws:policy/AdministratorAccess
@@ -100,7 +106,7 @@ Resources:
               StringEquals:
                 token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
               StringLike:
-                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubOrganization}/${RepositoryName}:*
+                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubOrganization}/${RepositoryName}:ref:refs/heads/${pBranchName}
       Policies:
         -
           PolicyName: S3-Allow
@@ -134,7 +140,7 @@ Resources:
               StringEquals:
                 token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
               StringLike:
-                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubOrganization}/${RepositoryName}:*
+                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubOrganization}/${RepositoryName}:ref:refs/heads/${pBranchName}
       ManagedPolicyArns:
         - !Sub arn:${AWS::Partition}:iam::aws:policy/ReadOnlyAccess
 
