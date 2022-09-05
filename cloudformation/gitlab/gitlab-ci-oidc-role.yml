@@ -1,110 +1,68 @@
 ---
 AWSTemplateFormatVersion: "2010-09-09"
-Description: GitLab Actions - OIDC IDP and associated Roles for Full CICD
+Description: GitLab CI - OIDC IDP and associated Role for Resource Deployment
 
 Parameters:
-
-  pGroupName:
+  GroupName:
     Type: String
-    Description: This is the GitLab group name. If using multiple groups, list the full path for the group(s)
+    Description: (CASE SENSITIVE) This is the GitLab group name. If using multiple groups, list the full path for the group(s)
     Default: ""
 
-  pRepositoryName:
-    Type: String
-    Description: The repo(s) these roles will have access to. (Use * for all repos within the group)
-    Default: "*"
-
-  pBranchName:
-    Type: String
-    Description: The repo(s) these roles will have access to. (Use * to allow all branches)
-    Default: "*"
-
-  pRoleName:
+  RoleName:
     Type: String
     Description: Name the Role
     Default: ""
 
-  UseExistingProvider:
+  RepositoryName:
     Type: String
-    Description: "Only one GitHub Provider can exists. Choose yes if one is already present in account"
-    Default: "no"
-    AllowedValues:
-      - "yes"
-      - "no"
+    Description: The repo(s) these roles will have access to. (Use * for all repos within the group)
+    Default: "*"
 
-  UseGitlabSaaS:
+  BranchName:
     Type: String
-    Description: "Only one GitHub Provider can exists. Choose yes if one is already present in account"
-    Default: "no"
-    AllowedValues:
-      - "yes"
-      - "no"
-
-Conditions:
-
-  CreateProvider: !Equals [!Ref UseExistingProvider, "no"]
-  UseGitlabSaaS: !Equals [!Ref UseGitlabSaaS, "no"]
+    Description: The branch to allow automation to run against.
+    Default: "*"
 
 Resources:
-
   IdpGitLabOidc:
-    Condition: CreateProvider
     Type: AWS::IAM::OIDCProvider
     Properties:
       Url: https://gitlab.com
       ClientIdList:
-        - sts.amazonaws.com
         - https://gitlab.com
       ThumbprintList:
         - b3dd7606d2b5a8b4a13771dbecc9ee1cecafa38a
       Tags:
-      - Key: Name
-        Value: !Sub ${pRoleName}-GL-OIDC-Provider
+        - Key: Name
+          Value: !Sub ${RoleName}-OIDC-Provider
 
-  RoleDeploy:
+  Role:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub ${pRoleName}-Deploy
+      RoleName: !Sub ${RoleName}-Deploy
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
             Action: sts:AssumeRoleWithWebIdentity
             Principal:
-              Federated: !If
-                - CreateProvider
-                - !Ref IdpGitLabOidc
-                - !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:oidc-provider/gitlab.example.com
+              Federated:
+                - !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:oidc-provider/gitlab.com
             Condition:
-              StringEquals:
-                token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
               StringLike:
-                gitlab.example.com:sub: !Sub project_path:${pGroupName}/${pRepositoryName}:ref_type:branch:ref:${pBranchName}
+                #gitlab.com:sub: !Sub project_path:${GroupName}*:*
+                gitlab.com:sub: !Sub project_path:${GroupName}/${RepositoryName}:ref_type:branch:ref:${BranchName}
       ManagedPolicyArns:
-        - !Sub arn:${AWS::Partition}:iam::aws:policy/ReadOnlyAccess
-        - !Sub arn:${AWS::Partition}:iam::aws:policy/AdministratorAccess
         - !Sub arn:${AWS::Partition}:iam::aws:policy/AWSCloudFormationFullAccess
-      Policies:
-        -
-          PolicyName: S3-Allow
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Sid: S3Actions
-                Effect: Allow
-                Action:
-                  - s3:ListBucket
-                  - s3:GetObject
-                Resource:
-                  - !Sub 'arn:${AWS::Partition}:s3:::*'
-                  - !Sub 'arn:${AWS::Partition}:s3:::*/*'
 
 Outputs:
-
-  IdpGitHubOidc:
-    Condition: CreateProvider
-    Description: "ARN of Github OIDC Provider"
+  IdpGitLabOidc:
+    Description: "ARN of GitLab OIDC Provider"
     Value: !GetAtt IdpGitLabOidc.Arn
+    Export:
+      Name: !Sub ${RoleName}-Arn
 
-  RoleDeployARN:
-    Description: "ARN of Read Only Access Role for GitHub Actions"
-    Value: !GetAtt RoleDeploy.Arn
+  RoleARN:
+    Description: "ARN of Deploy Access Role for GitLab CI"
+    Value: !GetAtt Role.Arn
+    Export:
+      Name: !Sub ${RoleName}-Gitlab-CI
