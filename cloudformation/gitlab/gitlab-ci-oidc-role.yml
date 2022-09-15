@@ -52,7 +52,7 @@ Resources:
                 #gitlab.com:sub: !Sub project_path:${GroupName}*:*
                 gitlab.com:sub: !Sub project_path:${GroupName}/${RepositoryName}:ref_type:branch:ref:${BranchName}
       ManagedPolicyArns:
-        - !Sub arn:${AWS::Partition}:iam::aws:policy/AWSCloudFormationFullAccess
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AdministratorAccess
 
 Outputs:
   IdpGitLabOidc:
